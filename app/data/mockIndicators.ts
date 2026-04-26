@@ -8,6 +8,8 @@ export type IndicatorImpacts = {
 
 export type Indicator = {
   id: string;
+  shortName: string;
+  fullName: string;
   name: string;
   value: string;
   yoyChange: string;
@@ -22,6 +24,8 @@ export type Indicator = {
 export const mockIndicators: Indicator[] = [
   {
     id: "cpi",
+    shortName: "CPI",
+    fullName: "居民消费价格指数",
     name: "CPI 居民消费价格指数",
     value: "0.3%",
     yoyChange: "+0.1pp",
@@ -39,6 +43,8 @@ export const mockIndicators: Indicator[] = [
   },
   {
     id: "pmi",
+    shortName: "PMI",
+    fullName: "制造业采购经理人指数",
     name: "PMI 制造业采购经理人指数",
     value: "49.5",
     yoyChange: "-0.3",
@@ -56,6 +62,8 @@ export const mockIndicators: Indicator[] = [
   },
   {
     id: "tsf",
+    shortName: "社融",
+    fullName: "社会融资规模存量同比",
     name: "社融存量同比",
     value: "8.7%",
     yoyChange: "-0.2pp",
@@ -73,6 +81,8 @@ export const mockIndicators: Indicator[] = [
   },
   {
     id: "m2",
+    shortName: "M2",
+    fullName: "广义货币供应量",
     name: "M2 广义货币供应量",
     value: "8.4%",
     yoyChange: "+0.1pp",
@@ -90,6 +100,8 @@ export const mockIndicators: Indicator[] = [
   },
   {
     id: "gdp",
+    shortName: "GDP",
+    fullName: "国内生产总值同比增速",
     name: "GDP 同比增速",
     value: "5.0%",
     yoyChange: "+0.1pp",
@@ -107,6 +119,8 @@ export const mockIndicators: Indicator[] = [
   },
   {
     id: "unemployment",
+    shortName: "城镇调查失业率",
+    fullName: "全国城镇调查失业率",
     name: "城镇调查失业率",
     value: "5.2%",
     yoyChange: "-0.1pp",

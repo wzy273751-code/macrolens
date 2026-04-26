@@ -31,6 +31,10 @@ export default function IndicatorDetailModal({
 }: IndicatorDetailModalProps) {
   const [isRendered, setIsRendered] = useState(isOpen);
   const [isVisible, setIsVisible] = useState(isOpen);
+  const [analysisText, setAnalysisText] = useState(indicator?.aiAnalysis ?? "");
+  const [generatedAt, setGeneratedAt] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -56,6 +60,68 @@ export default function IndicatorDetailModal({
     window.addEventListener("keydown", handleEscClose);
     return () => window.removeEventListener("keydown", handleEscClose);
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    setAnalysisText(indicator?.aiAnalysis ?? "");
+    setGeneratedAt(null);
+    setErrorMessage(null);
+    setIsGenerating(false);
+  }, [indicator?.id, isOpen, indicator?.aiAnalysis]);
+
+  const formatTimestamp = (date: Date) => {
+    const pad = (value: number) => value.toString().padStart(2, "0");
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hour = pad(date.getHours());
+    const minute = pad(date.getMinutes());
+    const second = pad(date.getSeconds());
+    return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+  };
+
+  const handleRegenerate = async () => {
+    if (!indicator || isGenerating) return;
+
+    setIsGenerating(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          indicator: {
+            name: indicator.shortName,
+            fullName: indicator.fullName,
+            value: indicator.value,
+            change: indicator.yoyChange,
+            date: indicator.date,
+            description: indicator.description,
+          },
+        }),
+      });
+
+      const result = (await response.json()) as {
+        success?: boolean;
+        analysis?: string;
+        message?: string;
+      };
+
+      if (!response.ok || !result.success || !result.analysis) {
+        throw new Error(result.message || "生成失败，请稍后重试。");
+      }
+
+      setAnalysisText(result.analysis);
+      setGeneratedAt(formatTimestamp(new Date()));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "生成失败，请稍后重试。";
+      setErrorMessage(message);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const chartPoints = useMemo(() => {
     if (!indicator) return "";
@@ -113,8 +179,50 @@ export default function IndicatorDetailModal({
         </section>
 
         <section className="mt-5">
-          <h4 className="text-sm font-medium text-neutral-300">AI 经济学家解读</h4>
-          <p className="mt-2 text-sm leading-7 text-neutral-300">{indicator.aiAnalysis}</p>
+          <div className="flex items-center justify-between gap-3">
+            <h4 className="text-sm font-medium text-neutral-300">AI 经济学家解读</h4>
+            <button
+              type="button"
+              onClick={handleRegenerate}
+              disabled={isGenerating}
+              className="rounded-md border border-neutral-700 px-2 py-1 text-xs text-neutral-400 transition-colors hover:border-white hover:text-white disabled:cursor-not-allowed disabled:border-neutral-800 disabled:text-neutral-600"
+            >
+              {isGenerating ? "生成中..." : "重新生成"}
+            </button>
+          </div>
+
+          <div className="mt-2 rounded-lg border border-neutral-800 bg-neutral-950/60 p-3">
+            {isGenerating ? (
+              <div className="animate-pulse space-y-2">
+                <div className="h-3 w-full rounded bg-neutral-800" />
+                <div className="h-3 w-11/12 rounded bg-neutral-800" />
+                <div className="h-3 w-10/12 rounded bg-neutral-800" />
+                <div className="h-3 w-9/12 rounded bg-neutral-800" />
+                <div className="h-3 w-8/12 rounded bg-neutral-800" />
+              </div>
+            ) : (
+              <>
+                <p className="text-sm leading-7 text-neutral-300">{analysisText}</p>
+                {generatedAt ? (
+                  <p className="mt-3 text-xs text-neutral-500">
+                    ✨ 由 DeepSeek 实时生成 · {generatedAt}
+                  </p>
+                ) : null}
+                {errorMessage ? (
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <p className="text-xs text-red-400">生成失败：{errorMessage}</p>
+                    <button
+                      type="button"
+                      onClick={handleRegenerate}
+                      className="rounded-md border border-neutral-700 px-2 py-1 text-xs text-neutral-300 transition-colors hover:border-white hover:text-white"
+                    >
+                      重试
+                    </button>
+                  </div>
+                ) : null}
+              </>
+            )}
+          </div>
         </section>
 
         <section className="mt-6">
