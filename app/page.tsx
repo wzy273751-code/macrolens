@@ -1,10 +1,16 @@
+"use client";
+
+import { useState } from "react";
 import IndicatorCard from "./components/IndicatorCard";
-import { mockIndicators } from "./data/mockIndicators";
+import IndicatorDetailModal from "./components/IndicatorDetailModal";
+import { mockIndicators, type Indicator } from "./data/mockIndicators";
 
 const dailyBrief =
   "今日国家统计局公布4月CPI同比上涨0.3%，连续第三个月温和回升。核心CPI同比0.7%，显示内需仍在缓慢修复。结合昨日公布的社融数据（新增信贷低于预期），市场对央行二季度降准的预期有所升温。今日10年期国债收益率下行2BP至2.28%。在外需节奏仍不稳定的背景下，市场短期更关注政策端对信用扩张与居民消费修复的持续支持力度，权益市场风格或继续在防御与高股息之间轮动。";
 
 export default function Home() {
+  const [selectedIndicator, setSelectedIndicator] = useState<Indicator | null>(null);
+
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
       <div className="mx-auto w-full max-w-6xl px-4 py-6 md:px-8 md:py-8">
@@ -31,7 +37,11 @@ export default function Home() {
           <h2 className="text-lg font-medium text-white">核心指标</h2>
           <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3">
             {mockIndicators.map((indicator) => (
-              <IndicatorCard key={indicator.id} indicator={indicator} />
+              <IndicatorCard
+                key={indicator.id}
+                indicator={indicator}
+                onClick={() => setSelectedIndicator(indicator)}
+              />
             ))}
           </div>
         </section>
@@ -46,6 +56,12 @@ export default function Home() {
           </a>
         </footer>
       </div>
+
+      <IndicatorDetailModal
+        indicator={selectedIndicator}
+        isOpen={selectedIndicator !== null}
+        onClose={() => setSelectedIndicator(null)}
+      />
     </main>
   );
 }
